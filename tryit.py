@@ -50,6 +50,6 @@ os.system("nasm %s -o %s.bin" % (file_name, new_name))
 new_shell = convert(new_name+".bin")
 replace_c(new_shell)
 os.system("cl %s -o %s.exe" % ("sc_test_offset.c", new_name))
-os.system("windbg %s.exe" % new_name)
+os.system('windbg %s.exe -c "g" '% new_name)
 
 
