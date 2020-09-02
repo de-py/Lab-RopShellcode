@@ -42,8 +42,8 @@ except:
     print("You need two arguments and you need an integer")
     exit()
 
-os.system("wget --no-check-certificate https://raw.githubusercontent.com/de-py/Lab-RopShellcode/master/sc_test_offset.c ")
-os.system("wget --no-check-certificate https://raw.githubusercontent.com/de-py/Lab-RopShellcode/master/shellcode.asm")
+os.system("wget --no-check-certificate -O sc_test_offset.c https://raw.githubusercontent.com/de-py/Lab-RopShellcode/master/sc_test_offset.c ")
+os.system("wget --no-check-certificate -O shellcode.asm https://raw.githubusercontent.com/de-py/Lab-RopShellcode/master/shellcode.asm")
 #os.system("wget --no-check-certificate https://raw.githubusercontent.com/de-py/Lab-RopShellcode/master/tryit.py")
 new_name = ("shellv%d" % suffix)
 os.system("nasm %s -o %s.bin" % (file_name, new_name))
