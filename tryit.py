@@ -42,6 +42,7 @@ except:
     print("You need two arguments and you need an integer")
     exit()
 
+os.system("git pull")
 new_name = ("shellv%d" % suffix)
 os.system("nasm %s -o %s.bin" % (file_name, new_name))
 new_shell = convert(new_name+".bin")
