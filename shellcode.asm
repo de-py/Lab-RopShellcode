@@ -3,7 +3,6 @@
 mainentrypoint:
 
 call geteip
-
 geteip:
 pop edx ; EDX is now base for function
 lea edx, [edx-5] ;adjust for first instruction?
@@ -12,7 +11,7 @@ mov ebp, esp
 sub esp, 1000h
 
 push edx
-mov ebx, 0x4b1ffe8e ; TODO: add your module hash
+mov ebx, 0x4b1ffe8e; Kernell32.dll
 call get_module_address
 pop edx
 
@@ -26,16 +25,122 @@ call get_api_address
 pop edx
 pop ebp
 
+
 ;TODO call your api
+
 ; Call LoadLibraryA to get user32.dll into memory
-int 3
 push ebp
 push edx
-lea eax, [EDX + WINSOCK]
+lea eax, [EDX + USER32]
 push eax
 call [EDX + LoadLibraryA]
 pop edx
 pop ebp
+
+; Build user32 API function pointer table
+push ebp
+push edx
+mov ebp, eax
+lea esi, [EDX + USER32HASHTABLE]
+lea edi, [EDX + USER32FUNCTIONSTABLE]
+call get_api_address
+pop edx
+pop ebp
+
+; Call LoadLibraryA to get urlmon.dll into memory
+push ebp
+push edx
+lea eax, [EDX + URLMON]
+push eax
+call [EDX + LoadLibraryA]
+pop edx
+pop ebp
+
+; Build urlmon API function pointer table
+push ebp
+push edx
+mov ebp, eax
+lea esi, [EDX + URLMONHASHTABLE]
+lea edi, [EDX + URLMONFUNCTIONSTABLE]
+call get_api_address
+pop edx
+pop ebp
+
+; call messageboxa
+; says "Downloading Flower Image Now"
+push 0x00 ; null byte
+push 0x776f4e20 ; pushing above sentence backwords
+push 0x6567616d
+push 0x49207265
+push 0x776f6c46
+push 0x20676e69
+push 0x64616f6c
+push 0x6e776f44
+mov eax, esp ; mov pointer to eax
+push 0x00 ; push utype
+push 0x00 ; push lpcaption
+push eax ; push lptext
+push 0x00 ; push hwnd
+mov ebx, edx ; trying to preseve edx
+call [EDX + MESSAGEBOXA]
+mov edx, ebx ; Moved back to be consistent
+
+; call URLDownloadToFile, Downloads Flower Image over http
+lea esi, [EDX + URL]
+lea edi, [EDX + URLFILENAME]
+push 0x00 ; push lpfnCB
+push 0x00 ; Reserved, must be 0
+push edi ; push szFileName
+push esi ; push szURL
+push 0x00 ; push pcaller
+call [EDX + URLDOWNLOADTOFILE]
+mov edx, ebx ; Moved back to be consistent
+
+
+; CreateProcessA to open MSPaint of Flower.jpg
+push 0x00 ; Pushing enough space for pointers
+push 0x00
+push 0x00
+push 0x00
+push 0x00
+push 0x00
+push 0x00
+push 0x00
+push 0x00
+push 0x00
+push 0x00
+push 0x00
+push 0x00
+push 0x00
+push 0x00
+push 0x00
+push 0x00
+mov eax, esp
+push 0x00 ; pushing enough space for pointers
+push 0x00
+push 0x00
+push 0x00
+mov ecx, esp
+lea esi, [EDX + EXE]
+push ecx ; push lpProcessInformation
+push eax ; push lpStartupInfo
+push 0x00 ; push lpCurrentDirectory
+push 0x00 ; push lpEnvironment
+push 0x00 ; dwCreationFlags
+push 0x00 ; bInheritHandles
+push 0x00 ; lpThreadAttributes
+push 0x00 ; lpProcessAttributes
+push esi ; lpCommandLine
+push 0x00 ; lpApplicationName
+call [edx + CreateProcessA]
+mov edx, ebx ; replacing edx
+
+; Call Exit Process
+push 0x00 ; Error code
+call [edx + ExitProcess]
+
+
+
 
 ; returns module base in EAX
 ; EBP = Hash of desired module
@@ -88,7 +193,7 @@ load_api_hash:
 push edi
 push esi
 mov esi, [esi]
-xor ecx, ecx
+; xor ecx, ecx
 
 load_api_name:
 mov edi, [ebx]
@@ -142,26 +247,47 @@ ret
 
 KERNEL32HASHTABLE:
 	dd 0x46318ac7 ; CreateProcessA
-	dd 0x95902b19 ; ExitProcessTODO: add your API hash(es) here
+	dd 0x95902b19 ; ExitProcess
 	dd 0xc8ac8026 ; LoadLibraryA
+	
 	dd 0xFFFF ; make sure to end with this token
 
 KERNEL32FUNCTIONSTABLE:
 CreateProcessA:
 	dd 0x00000000
-
 ExitProcess:
 	dd 0x00000001
-
 LoadLibraryA:
 	dd 0x00000002
 
 
-WINSOCK:
-	db "winsock.h", 0
+USER32HASHTABLE:
+	dd 0xabbc680d ; MessageBoxA
+	dd 0xFFFF
 
+USER32FUNCTIONSTABLE:
+MESSAGEBOXA:
+	dd 0x00000003
 
-WINSOCKHASHTABLE:
-	dd  0xcdde757d ; WSAStartup
+USER32:
+	db "user32.dll", 0
 
+URLMONHASHTABLE:
+	dd 0xd95d2399 ;  URLDownloadToFileA
+	dd 0xFFFF
 
+URLMONFUNCTIONSTABLE:
+URLDOWNLOADTOFILE:
+	dd 0x00000004
+
+URLMON:
+	db "urlmon.dll", 0
+
+URL:
+	db "http://images.freeimages.com/images/large-previews/199/sunflowers-6-1392951.jpg", 0
+
+URLFILENAME:
+	db "flower.jpeg", 0
+
+EXE:
+	db "mspaint.exe flower.jpeg"
