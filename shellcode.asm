@@ -28,6 +28,7 @@ pop ebp
 
 ;TODO call your api
 ; Call LoadLibraryA to get user32.dll into memory
+int 3
 push ebp
 push edx
 lea eax, [EDX + WINSOCK]
