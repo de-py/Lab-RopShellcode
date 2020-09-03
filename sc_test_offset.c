@@ -26,6 +26,8 @@ char shellcode[268] =
 
 		
 int main(int argc, char **argv) {
+	
+	HINSTANCE hInstLib = LoadLibrary(TEXT("user32.dll"));
 
 	int i = 0, len = 0, target_addy = 0, offset = 0x0;
 
